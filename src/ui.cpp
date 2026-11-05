@@ -143,9 +143,9 @@ void drawHeader(const char* title) {
         canvas.drawString(buf, x, 1);
     }
 
-    // Verbindungspunkt: gruen = ntfy-Stream laeuft, gelb = nur WLAN, rot = kein WLAN
+    // Verbindungspunkt: gruen = Live-Verbindung zur Meldungsquelle, gelb = nur WLAN, rot = kein WLAN
     uint16_t dot = C_ERR;
-    if (core::online()) dot = core::ntfy.state() == NtfyClient::State::Streaming ? C_OK : C_YELLOW;
+    if (core::online()) dot = core::live() ? C_OK : C_YELLOW;
     x -= 8;
     canvas.fillRect(x - 2, HEADER_H / 2 - 3, 4, 4, dot);
     x -= 6;

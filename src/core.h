@@ -9,6 +9,7 @@
 
 #include "config.h"
 #include "ntfy.h"
+#include "quelle.h"
 
 namespace core {
 
@@ -21,7 +22,6 @@ struct Settings {
 extern Config cfg;
 extern Settings settings;
 extern Preferences prefs;
-extern NtfyClient ntfy;
 extern std::deque<NtfyMessage> messages;  // neueste vorn, max. 30
 
 void begin();  // nach loadConfig()
@@ -36,6 +36,10 @@ int wifiRssi();
 String wifiDiagnosis();  // letzte WLAN-Ereignisse (Scan, Verbinden, Trennungsgrund), mehrzeilig
 
 int unread();
+
+// Meldungsquelle: Meldestelle (wenn server_url gesetzt) oder ntfy, siehe config.h
+Quelle& quelle();
+bool live();   // Live-Verbindung zur Quelle steht
 
 // Nutzeraktivitaet. true = Display war abgedunkelt (Tastendruck nur zum Wecken).
 bool wake();

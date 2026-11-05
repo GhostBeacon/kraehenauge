@@ -7,6 +7,8 @@
 
 #include <functional>
 
+#include "quelle.h"
+
 struct NtfyMessage {
     String id;
     String topic;
@@ -17,13 +19,12 @@ struct NtfyMessage {
     bool seen = false;
 };
 
-class NtfyClient {
+class NtfyClient : public Quelle {
 public:
-    enum class State { Idle, Streaming, Backoff };
-
     void begin(const String& server, const String& topics, std::function<void(NtfyMessage&&)> onMessage);
-    void poll(bool networkReady);
-    State state() const { return _state; }
+    void poll(bool networkReady) override;
+    State state() const override { return _state; }
+    const char* name() const override { return "ntfy"; }
 
 private:
     bool connect();

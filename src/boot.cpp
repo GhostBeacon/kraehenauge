@@ -17,7 +17,11 @@ static constexpr uint32_t TOTAL_MS = 2600;
 static String stage() {
     if (!core::online()) return "> wlan scan";
     if (!core::timeValid()) return "> ntp sync";
-    if (core::ntfy.state() != NtfyClient::State::Streaming) return "> ntfy link";
+    if (!core::live()) {
+        String n = core::quelle().name();
+        n.toLowerCase();
+        return "> " + n + " link";
+    }
     return "> online";
 }
 

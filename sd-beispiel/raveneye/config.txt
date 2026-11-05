@@ -9,16 +9,19 @@ wifi_pass=<WLAN_PASSWORT>
 wifi2_ssid=<WLAN2_NAME>
 wifi2_pass=<WLAN2_PASSWORT>
 
-# nur Hostname, Verbindung immer per HTTPS
-ntfy_server=ntfy.sh
-# mehrere Topics mit Komma, z. B. alarm,info
-ntfy_topics=<NTFY_TOPIC>
 
 # Statusanzeige (optional): oeffentliche Statusseite von Uptime Kuma 1.x
 # Adresse ohne Pfad, dazu der Slug der Statusseite (steht in deren URL /status/<slug>)
 status_url=https://<STATUS_HOST>
 status_slug=<SLUG>
 
-# System (optional): Server mit /api/v1/system_stats (Nur-Lese-Anmeldung auf dem Geraet)
+# Server: Systemwerte (/api/v1/system_stats) und Meldungen von der Meldestelle
+# (/api/v1/meldungen, wie die Kraehenhort-App). Anmeldung auf dem Geraet mit Nur-Lese-Token.
 # Passwoerter gehoeren NICHT in diese Datei.
 server_url=https://<SERVER_HOST>
+
+# Meldungen kommen von der Meldestelle, sobald server_url gesetzt ist.
+# Stattdessen ntfy: die drei Zeilen unten einkommentieren (Topic ohne Leerzeichen).
+#meldungen=ntfy
+#ntfy_server=ntfy.sh
+#ntfy_topics=<NTFY_TOPIC>

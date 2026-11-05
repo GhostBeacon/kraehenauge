@@ -1,4 +1,4 @@
-// Meldungen aus ntfy: Liste (neueste oben), Enter oeffnet, x entfernt (nur auf dem Geraet)
+// Meldungen (Meldestelle oder ntfy): Liste (neueste oben), Enter oeffnet, x entfernt (nur auf dem Geraet)
 
 #include "apps.h"
 #include "core.h"
@@ -34,9 +34,11 @@ static void draw() {
 
     if (core::messages.empty()) {
         c.setTextColor(ui::C_HINT);
-        const char* hint = !core::online() ? "Verbinde mit WLAN ..."
-                           : core::ntfy.state() == NtfyClient::State::Streaming ? "Keine Meldungen"
-                                                                                : "Verbinde mit ntfy ...";
+        String hint = !core::online()                   ? String("Verbinde mit WLAN ...")
+                      : core::live()                     ? String("Keine Meldungen")
+                      : !core::quelle().hinweis().isEmpty() ? core::quelle().hinweis()
+                                                         : "Verbinde mit " + String(core::quelle().name()) + " ...";
+        hint = ui::fitLine(hint, w - 8);
         c.drawString(hint, (w - c.textWidth(hint)) / 2, c.height() / 2);
         return;
     }
