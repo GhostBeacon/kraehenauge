@@ -59,6 +59,23 @@ Oben rechts: Punkt grün = ntfy-Stream läuft, gelb = WLAN ohne Stream, rot = ke
 - Werte, die der Server nicht liefert, erscheinen als „-“. Der Server entscheidet, welche Konten die Werte sehen dürfen (sonst „nicht freigegeben“).
 - **Anmeldung** beim ersten Öffnen (oder unter Einstellungen → Server) mit Benutzername, Passwort und ggf. 2FA-Code. Das Gerät fordert ein **Nur-Lese-Token** an (`scope: monitor`, Gerätename „Krähenauge“): Es darf nur Systemwerte lesen – keine Dateien, nichts löschen. Liefert der Server kein solches Token, wird es sofort wieder verworfen. Passwort und Code werden nicht gespeichert.
 
+### Zubehör am Grove-Port
+
+Am Grove-Port kann **eine** von zwei Erweiterungen stecken, als Dauer-Anzeige neben dem Cardputer:
+
+- **Unit Hex** (37 RGB-LEDs), Ansicht **Lampe**: Die Mitte atmet in der Farbe der neuesten ungelesenen Meldung (5 rot, 4 orange, 3 cyan, 1–2 grau), sonst zeigt sie schwach die Verbindung (grün ntfy-Stream, gelb nur WLAN, rot offline). Der innere Ring zeigt die Server-Temperatur (40–80 °C auf 6 LEDs, grün/orange/rot); bei Unterspannung oder Drosselung blinkt er rot. Die beiden äußeren Ringe haben je Dienst der Statusseite eine LED (bis 30): grün läuft, rot blinkend ausgefallen, orange ausstehend, blau Wartung. Eine neue Meldung lässt einen Kometen außen kreisen. Ansicht **Ruhig**: dunkel, nur Probleme und ungelesene Meldungen leuchten.
+- **Unit OLED** (SH1107, 128×64): **System** (CPU, Temperatur groß, RAM, Last, Warnungen), **Status** (Anzahl ok, ausgefallene Dienste), **Meldung** (neueste Meldung), **Wechsel** (alle 8 s die nächste).
+
+| Taste | Funktion |
+|---|---|
+| Fn + `E` | Gerät neu erkennen (nach dem Umstecken) |
+| Fn + `R` | Ansicht wechseln |
+| Fn + `T` | Hex: Helligkeit (3 Stufen) · OLED: um 180° drehen |
+
+Dasselbe unter **Einstellungen → Zubehör**. Erkannt wird beim Start: Antwortet ein OLED, wird es genutzt, sonst wird das Hex angesteuert. Ansicht, Helligkeit und Drehung bleiben gespeichert.
+
+Damit die Anzeige aktuell bleibt, fragt Krähenauge Statusseite (alle 60 s) und Systemwerte (alle 15 s) **auch im Hintergrund** ab, solange die gewählte Ansicht sie braucht. Die Verbindung zum Server bleibt dabei offen (wie in „System“); das kostet etwas Arbeitsspeicher und Akku. Die Ansteuerung steckt in [`lib/beiwerk`](lib/beiwerk) (dieselben Dateien wie in [Takt](https://github.com/GhostBeacon/takt)).
+
 ### Schrift
 
 [Spleen](https://github.com/fcambus/spleen) 6×12 (Pixel-Monospace, BSD-Lizenz) mit Umlauten, ß, °, ergänzt um selbst gezeichnete Zeichen € „ “ ” ‚ ‘ ’ – — • …; die fette Variante ist daraus abgeleitet. Emojis werden weggelassen, andere unbekannte Zeichen als `?` angezeigt.
@@ -155,6 +172,7 @@ Ergebnis: `.pio/build/cardputer-adv/firmware.bin`. Serielle Ausgabe über USB: `
 ├── .github/workflows/firmware.yml   # Bauen + Release
 ├── sd-beispiel/raveneye/config.txt  # Vorlage mit Platzhaltern
 ├── docs/banner/                   # README-Banner + Link-Vorschau (make_banner.py, siehe dortige README)
+├── lib/beiwerk/                   # Grove-Zubehör: Erkennung, OLED, Hex-Treiber (Kopie, gleich wie in Takt)
 └── src/
     ├── main.cpp          # Start, Hauptschleife, Wechsel zwischen den Funktionen
     ├── boot.cpp/.h       # Startbild
@@ -169,6 +187,7 @@ Ergebnis: `.pio/build/cardputer-adv/firmware.bin`. Serielle Ausgabe über USB: `
     ├── app_status.cpp    # Uptime Kuma
     ├── app_system.cpp    # Systemwerte (Live, Verlauf, Backups)
     ├── app_settings.cpp  # Einstellungen
+    ├── zubehoer.cpp/.h   # Anzeige auf Unit OLED / Unit Hex, Hintergrundabfragen dafür
     ├── ntfy.cpp/.h       # ntfy-Stream-Client
     ├── config.cpp/.h     # SD-Konfiguration (Karte wird danach abgemeldet)
     ├── certs.h           # Root-Zertifikate
