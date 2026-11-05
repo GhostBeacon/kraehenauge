@@ -242,3 +242,15 @@ static String badge() {
 }
 
 App statusApp = {"Status", enter, key, draw, tick, badge};
+
+namespace statusdaten {
+bool eingerichtet() { return configured(); }
+int anzahl() { return monitors.size(); }
+int zustand(int i) { return i >= 0 && i < (int)monitors.size() ? monitors[i].status : -1; }
+String name(int i) { return i >= 0 && i < (int)monitors.size() ? monitors[i].name : String(); }
+void hintergrund() {
+    if (!configured() || !core::online() || !core::timeValid()) return;
+    uint32_t warte = fetched ? REFRESH_MS : 15000;   // noch keine Daten: bald nach dem Verbinden holen
+    if (millis() - lastFetch > warte) fetch();
+}
+}  // namespace statusdaten

@@ -469,3 +469,23 @@ static String badge() {
 }
 
 App systemApp = {"System", enter, key, draw, tick, badge, leave};
+
+namespace systemdaten {
+bool bereit() { return ready(); }
+Kurz kurz() {
+    Kurz k;
+    k.gueltig = st.valid;
+    k.cpu = st.cpu;
+    k.temp = st.temp;
+    k.last = st.load1;
+    k.ramUsed = st.ramUsed;
+    k.ramTotal = st.ramTotal;
+    k.unterspannung = st.underVoltNow;
+    k.gedrosselt = st.throttledNow || st.tempLimitNow;
+    return k;
+}
+void hintergrund() {
+    if (!ready() || !core::online() || !core::timeValid()) return;
+    if (millis() - lastPoll > 15000) poll();   // Verbindung bleibt offen (wie in der Funktion selbst)
+}
+}  // namespace systemdaten

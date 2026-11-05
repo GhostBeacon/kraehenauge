@@ -7,6 +7,7 @@
 #include "core.h"
 #include "text.h"
 #include "ui.h"
+#include "zubehoer.h"
 
 #ifndef FW_VERSION
 #define FW_VERSION "dev"
@@ -17,7 +18,7 @@ static int sel = 0, top = 0;
 static const uint8_t BRIGHT_STEPS[] = {32, 64, 128, 192, 255};
 static const uint32_t DIM_STEPS[] = {30000, 60000, 120000, 300000, 0};
 
-enum Row { R_SOUND, R_BRIGHT, R_DIM, R_WIFI, R_SERVER, R_SYSTEM, R_RESTART, R_COUNT };
+enum Row { R_SOUND, R_BRIGHT, R_DIM, R_WIFI, R_SERVER, R_ZUB, R_SYSTEM, R_RESTART, R_COUNT };
 
 static String label(int r) {
     switch (r) {
@@ -26,6 +27,7 @@ static String label(int r) {
         case R_DIM: return "Abdunkeln nach";
         case R_WIFI: return "WLAN";
         case R_SERVER: return "Server";
+        case R_ZUB: return "Zubehör";
         case R_SYSTEM: return "System";
         case R_RESTART: return "Neu starten";
     }
@@ -44,6 +46,7 @@ static String value(int r) {
         case R_SERVER:
             if (core::cfg.serverUrl.isEmpty()) return "nicht eingerichtet";
             return auth::loggedIn() ? text::sanitize(auth::user()) : String("abgemeldet");
+        case R_ZUB: return zub::geraetName() + ": " + zub::ansichtName();
         case R_SYSTEM: return "v" FW_VERSION "  RAM " + String(ESP.getFreeHeap() / 1024) + " KB";
         default: return "";
     }
@@ -111,6 +114,13 @@ static void activate(int r) {
                 auth::logout();
             }
             break;
+        case R_ZUB: {
+            String extra = zub::geraetName() == "OLED" ? "OLED drehen" : "Hex-Helligkeit ändern";
+            int c = ui::choose("Zubehör", {"Neu erkennen", "Ansicht wechseln (" + zub::ansichtName() + ")", extra});
+            const char* m = c == 0 ? zub::erkennen() : c == 1 ? zub::naechsteAnsicht() : c == 2 ? zub::helligkeitOderDrehen() : nullptr;
+            if (m) core::toast(m, 2500);
+            break;
+        }
         case R_SYSTEM:
             ui::message("System", "Krähenauge " FW_VERSION "\nRAM frei: " + String(ESP.getFreeHeap() / 1024) +
                                       " KB\nkleinster Stand: " + String(ESP.getMinFreeHeap() / 1024) +

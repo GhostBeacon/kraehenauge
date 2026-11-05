@@ -15,6 +15,7 @@
 #include "core.h"
 #include "keys.h"
 #include "ui.h"
+#include "zubehoer.h"
 
 #ifndef FW_VERSION
 #define FW_VERSION "dev"
@@ -64,6 +65,7 @@ void setup() {
     ui::begin();
     core::begin();
     auth::begin();
+    zub::begin();   // OLED oder Hex am Grove-Port
     boot::run(FW_VERSION);
 }
 
@@ -72,7 +74,9 @@ void loop() {
     bool pressed = keys::poll(k);
     core::tick();
 
-    if (pressed) {
+    if (pressed && zub::taste(k)) {   // Fn+E/R/T: Zubehoer, in jeder Funktion
+        dirty = true;
+    } else if (pressed) {
         App* before = current;
         bool stay = current->key(k);
         if (!stay && current == before && current != &homeApp) {
@@ -82,6 +86,7 @@ void loop() {
         dirty = true;
     }
     if (current->tick) current->tick();
+    zub::tick();
 
     if (core::takeDirty()) dirty = true;
     if (dirty) {
