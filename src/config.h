@@ -18,6 +18,9 @@ struct Config {
     String statusUrl;               // Uptime Kuma, z. B. https://status.example.org (optional)
     String statusSlug;              // Slug der Statusseite
     String serverUrl;               // Server mit /api/v1/system_stats, z. B. https://srv.example.org (optional)
+    String meldungen;               // Quelle: "meldestelle" (Standard mit server_url) oder "ntfy"
+
+    bool nutztNtfy() const { return meldungen == "ntfy" || (meldungen.isEmpty() && serverUrl.isEmpty()); }
 };
 
 // Liefert false und eine Fehlermeldung, wenn Karte/Datei fehlt oder Pflichtwerte leer sind.

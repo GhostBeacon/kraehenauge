@@ -152,7 +152,7 @@ static void hexBild(bool ruhig) {
     if (const NtfyMessage* m = ungelesen()) {
         hex::set(hex::ring(0, 0), mal(prioFarbe(m->priority), atem));
     } else if (!ruhig) {
-        uint32_t c = core::ntfy.state() == NtfyClient::State::Streaming ? 0x00FF40
+        uint32_t c = core::live()                                        ? 0x00FF40
                      : core::online()                                    ? 0xFFC000
                                                                          : 0xFF0000;
         hex::set(hex::ring(0, 0), mal(c, 0.15f));

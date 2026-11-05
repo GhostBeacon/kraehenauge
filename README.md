@@ -9,13 +9,13 @@ Teil von **CORVUS** (Repo corvus, privat) – sichtbarer Name **Krähenauge**; R
 
 Eigene Firmware für den **M5Stack Cardputer ADV** (ESP32-S3FN8, 8 MB Flash, Tastatur-Chip TCA8418), gestartet über den [M5Launcher](https://github.com/bmorcelli/Launcher). Ein kleines Auge, das wach bleibt: reines **Monitoring** – es zeigt an und meldet, ändert aber nichts auf den Servern.
 
-Aussehen „Neon Noir“: schwarz, Cyan und Magenta, Pixelschrift. Beim Einschalten erscheint ein kurzes Startbild (~2,6 s, jede Taste überspringt es), während WLAN und ntfy schon verbinden.
+Aussehen „Neon Noir“: schwarz, Cyan und Magenta, Pixelschrift. Beim Einschalten erscheint ein kurzes Startbild (~2,6 s, jede Taste überspringt es), während WLAN und Meldungen schon verbinden.
 
-Ein Startmenü mit vier Funktionen. WLAN und ntfy laufen immer im Hintergrund weiter, auch wenn gerade eine andere Funktion offen ist – neue Meldungen erscheinen dann als Hinweis unten am Bildschirm.
+Ein Startmenü mit vier Funktionen. WLAN und Meldungen laufen immer im Hintergrund weiter, auch wenn gerade eine andere Funktion offen ist – neue Meldungen erscheinen dann als Hinweis unten am Bildschirm.
 
 | # | Funktion | Was sie tut |
 |---|---|---|
-| 1 | **Meldungen** | [ntfy](https://ntfy.sh)-Empfänger für ein oder mehrere Topics |
+| 1 | **Meldungen** | live von der **Meldestelle** des eigenen Servers (wie die Krähenhort-App), alternativ [ntfy](https://ntfy.sh) |
 | 2 | **Status** | Dienste einer [Uptime-Kuma](https://github.com/louislam/uptime-kuma)-Statusseite, mit Verlauf |
 | 3 | **System** | Live-Werte eines Servers (CPU, Temperatur, RAM, Netz, Platte, Strom, Backups, Plattenbelegung) – auch als Dauer-Anzeige |
 | 4 | **Einstellungen** | Ton, Helligkeit, Abdunkeln, WLAN, Server-Anmeldung, Speicher, Neustart |
@@ -33,11 +33,12 @@ Ein Startmenü mit vier Funktionen. WLAN und ntfy laufen immer im Hintergrund we
 
 **Texteingabe** (Anmeldung): Enter = OK, Del = Zeichen löschen, **Fn + `** = abbrechen, Tab = Passwort zeigen/verbergen.
 
-Oben rechts: Punkt grün = ntfy-Stream läuft, gelb = WLAN ohne Stream, rot = kein WLAN; `• 3` = ungelesene Meldungen; dazu Uhrzeit und Akku. Die Version steht auf dem Startbildschirm (`1.0.<Build-Nr.>`, lokal gebaut: `dev`).
+Oben rechts: Punkt grün = Live-Verbindung für Meldungen steht, gelb = WLAN ohne diese Verbindung, rot = kein WLAN; `• 3` = ungelesene Meldungen; dazu Uhrzeit und Akku. Die Version steht auf dem Startbildschirm (`1.0.<Build-Nr.>`, lokal gebaut: `dev`).
 
 ### Meldungen
 
-- Beim Start werden die Meldungen der letzten 12 h geladen (Cache von ntfy.sh), danach kommen neue live. Nach einem Verbindungsabbruch holt `since=<letzte id>` Verpasstes nach.
+- **Quelle Meldestelle** (Standard, sobald `server_url` gesetzt ist): dieselben Meldungen wie in der Krähenhort-App, live über `<server_url>/api/v1/meldungen/stream` (Server-Sent Events). Beim Start kommen die letzten 30 mit, danach neue live; nach einem Abbruch holt `seit=<letzte id>` Verpasstes nach. Voraussetzung: am Server angemeldet (Einstellungen → Server) mit einem Konto, für das der Pi-Status freigegeben ist. Sonst steht der Grund in der leeren Meldungsliste.
+- **Quelle ntfy** (`meldungen=ntfy` oder ohne `server_url`): Meldungen der letzten 12 h aus dem Cache von ntfy.sh, danach live; `since=<letzte id>` nach einem Abbruch.
 - Ton bei neuen Meldungen, doppelt ab Priorität 4. Farbe nach Priorität (5 rot, 4 orange, 1–2 grau).
 - Enter öffnet die Meldung, `x` entfernt sie vom Gerät, `a` markiert alle als gelesen.
 
@@ -57,13 +58,13 @@ Oben rechts: Punkt grün = ntfy-Stream läuft, gelb = WLAN ohne Stream, rot = ke
   3. **Backups & Energie:** letzter Lauf je Backup (grün ok, orange überfällig, rot fehlgeschlagen), Verbrauch im Monat und Jahr.
   4. **Speicher:** Belegung von HDD, Backup-HDD und SD-Karte (belegt / gesamt, Balken ab 80 % orange, ab 90 % rot). Eine nicht eingehängte Platte erscheint rot.
 - Werte, die der Server nicht liefert, erscheinen als „-“. Der Server entscheidet, welche Konten die Werte sehen dürfen (sonst „nicht freigegeben“).
-- **Anmeldung** beim ersten Öffnen (oder unter Einstellungen → Server) mit Benutzername, Passwort und ggf. 2FA-Code. Das Gerät fordert ein **Nur-Lese-Token** an (`scope: monitor`, Gerätename „Krähenauge“): Es darf nur Systemwerte lesen – keine Dateien, nichts löschen. Liefert der Server kein solches Token, wird es sofort wieder verworfen. Passwort und Code werden nicht gespeichert.
+- **Anmeldung** beim ersten Öffnen (oder unter Einstellungen → Server) mit Benutzername, Passwort und ggf. 2FA-Code. Das Gerät fordert ein **Nur-Lese-Token** an (`scope: monitor`, Gerätename „Krähenauge“): Es darf Systemwerte und (über die Meldestelle) Meldungen lesen – keine Dateien, nichts löschen. Liefert der Server kein solches Token, wird es sofort wieder verworfen. Passwort und Code werden nicht gespeichert.
 
 ### Zubehör am Grove-Port
 
 Am Grove-Port kann **eine** von zwei Erweiterungen stecken, als Dauer-Anzeige neben dem Cardputer:
 
-- **Unit Hex** (37 RGB-LEDs), Ansicht **Lampe**: Die Mitte atmet in der Farbe der neuesten ungelesenen Meldung (5 rot, 4 orange, 3 cyan, 1–2 grau), sonst zeigt sie schwach die Verbindung (grün ntfy-Stream, gelb nur WLAN, rot offline). Der innere Ring zeigt die Server-Temperatur (40–80 °C auf 6 LEDs, grün/orange/rot); bei Unterspannung oder Drosselung blinkt er rot. Die beiden äußeren Ringe haben je Dienst der Statusseite eine LED (bis 30): grün läuft, rot blinkend ausgefallen, orange ausstehend, blau Wartung. Eine neue Meldung lässt einen Kometen außen kreisen. Ansicht **Ruhig**: dunkel, nur Probleme und ungelesene Meldungen leuchten.
+- **Unit Hex** (37 RGB-LEDs), Ansicht **Lampe**: Die Mitte atmet in der Farbe der neuesten ungelesenen Meldung (5 rot, 4 orange, 3 cyan, 1–2 grau), sonst zeigt sie schwach die Verbindung (grün Meldungen live, gelb nur WLAN, rot offline). Der innere Ring zeigt die Server-Temperatur (40–80 °C auf 6 LEDs, grün/orange/rot); bei Unterspannung oder Drosselung blinkt er rot. Die beiden äußeren Ringe haben je Dienst der Statusseite eine LED (bis 30): grün läuft, rot blinkend ausgefallen, orange ausstehend, blau Wartung. Eine neue Meldung lässt einen Kometen außen kreisen. Ansicht **Ruhig**: dunkel, nur Probleme und ungelesene Meldungen leuchten.
 - **Unit OLED** (SH1107, 128×64): **System** (CPU, Temperatur groß, RAM, Last, Warnungen), **Status** (Anzahl ok, ausgefallene Dienste), **Meldung** (neueste Meldung), **Wechsel** (alle 8 s die nächste).
 
 | Taste | Funktion |
@@ -89,11 +90,12 @@ wifi_ssid=<WLAN_NAME>
 wifi_pass=<WLAN_PASSWORT>
 wifi2_ssid=<WLAN2_NAME>        # optional, bis wifi9_*
 wifi2_pass=<WLAN2_PASSWORT>
-ntfy_server=ntfy.sh
-ntfy_topics=<TOPIC>[,<TOPIC2>]
 status_url=https://<STATUS_HOST>   # optional
 status_slug=<SLUG>
-server_url=https://<SERVER_HOST>   # optional, für „System“
+server_url=https://<SERVER_HOST>   # für „System“ und die Meldestelle
+meldungen=meldestelle              # optional: meldestelle (Standard mit server_url) oder ntfy
+ntfy_server=ntfy.sh                # nur für meldungen=ntfy
+ntfy_topics=<TOPIC>[,<TOPIC2>]     # nur für meldungen=ntfy
 ```
 
 - Pro Zeile `name=wert`. Zeilen, die mit `#` beginnen, sind Kommentare. Leerzeichen am Rand des Werts werden entfernt.
@@ -107,7 +109,9 @@ server_url=https://<SERVER_HOST>   # optional, für „System“
 | `Keine SD-Karte` | Karte fehlt oder ist nicht FAT32 |
 | `/raveneye/config.txt fehlt` | Ordner oder Dateiname falsch |
 | `wifi_ssid fehlt` | kein einziges WLAN eingetragen oder Schlüssel falsch geschrieben |
-| `ntfy_topics ungueltig` | Leerzeichen, spitze Klammern oder Sonderzeichen im Topic |
+| `ntfy_topics ungueltig` | nur bei Quelle ntfy: Topic fehlt oder enthält Leerzeichen, spitze Klammern oder Sonderzeichen |
+| `meldungen= ntfy oder meldestelle` | anderer Wert bei `meldungen=` |
+| `meldungen=meldestelle braucht server_url` | `server_url` fehlt |
 | `URL muss https:// sein` | `status_url` oder `server_url` beginnt nicht mit `https://` |
 
 ## Installieren
@@ -141,7 +145,7 @@ Zum Launcher zurück: beim Einschalten eine Taste drücken, solange der Launcher
 | Flash (App) | ~1,24 MB – der Launcher reserviert ~1,25 MB |
 | davon eigener Code | ~110 KB, der Rest ist WLAN, TLS, Anzeige- und Hardware-Bibliotheken |
 | RAM statisch | ~52 KB |
-| RAM zur Laufzeit | Bildpuffer 65 KB, WLAN ~60 KB, je TLS-Verbindung ~45 KB (ntfy immer, System nur solange offen) |
+| RAM zur Laufzeit | Bildpuffer 65 KB, WLAN ~60 KB, je TLS-Verbindung ~45 KB (Meldungen immer, System solange offen oder fürs Zubehör) |
 
 Der ESP32-S3FN8 hat 8 MB Flash und keinen PSRAM. Der M5Launcher (ab 2.8) belegt selbst ~1,4 MB und kann mehrere Firmwares **gleichzeitig** im Flash halten; beim Start wählt man per Taste, welche läuft. Ob Krähenauge neben einer anderen Firmware Platz hat, zeigt der Launcher im **PMan** (Partition Manager; freier Bereich muss ≥ 1,25 MB sein). Große Firmwares mit eigener Daten-Partition können den Rest des Flash belegen – dann wird die jeweils andere beim Wechsel neu von der SD-Karte installiert.
 
@@ -161,9 +165,9 @@ Ergebnis: `.pio/build/cardputer-adv/firmware.bin`. Serielle Ausgabe über USB: `
 
 - **TLS mit Zertifikatsprüfung.** In [`src/certs.h`](src/certs.h) stehen nur ISRG Root X1 und X2 (Let's Encrypt), mit SHA-256-Fingerabdruck. Verbunden wird erst nach erfolgreichem NTP-Abgleich, denn ohne gültige Uhrzeit schlägt die Prüfung fehl.
 - **Zugangsdaten nur auf der SD-Karte**, nie in Firmware oder Repo. Wer die Karte hat, hat WLAN-Passwort und Topic.
-- **Nur lesend.** Krähenauge ändert nichts auf den Servern. Das Server-Token ist ein Nur-Lese-Token (nur Systemwerte).
+- **Nur lesend.** Krähenauge ändert nichts auf den Servern. Das Server-Token ist ein Nur-Lese-Token (Systemwerte und Meldungen).
 - **Token im internen Speicher (NVS), unverschlüsselt.** Der NVS-Bereich wird vom M5Launcher mit allen installierten Firmwares geteilt – jede andere Firmware auf dem Gerät kann ihn auslesen. Deshalb nur ein Nur-Lese-Token. Geht das Gerät verloren: Token auf dem Server widerrufen (Gerät „Krähenauge“). Abmelden in den Einstellungen löscht es auch dort.
-- Alle Verbindungen (ntfy, Status, System) laufen über HTTPS mit Prüfung gegen dieselben Stammzertifikate. Server mit Zertifikaten anderer Anbieter als Let's Encrypt werden abgelehnt.
+- Alle Verbindungen (Meldungen, Status, System) laufen über HTTPS mit Prüfung gegen dieselben Stammzertifikate. Server mit Zertifikaten anderer Anbieter als Let's Encrypt werden abgelehnt.
 
 ## Aufbau
 
@@ -176,7 +180,7 @@ Ergebnis: `.pio/build/cardputer-adv/firmware.bin`. Serielle Ausgabe über USB: `
 └── src/
     ├── main.cpp          # Start, Hauptschleife, Wechsel zwischen den Funktionen
     ├── boot.cpp/.h       # Startbild
-    ├── core.cpp/.h       # Hintergrund: WLAN, ntfy, Meldungen, Einstellungen, Abdunkeln, Speicher
+    ├── core.cpp/.h       # Hintergrund: WLAN, Meldungsquelle, Meldungen, Einstellungen, Abdunkeln, Speicher
     ├── keys.cpp/.h       # Tastatur mit Wiederholung
     ├── ui.cpp/.h         # Farben, Kopfzeile, Listen, Dialoge, Texteingabe
     ├── text.cpp/.h       # UTF-8, Zeichenvorrat, Zahlen/Zeiten
@@ -188,6 +192,8 @@ Ergebnis: `.pio/build/cardputer-adv/firmware.bin`. Serielle Ausgabe über USB: `
     ├── app_system.cpp    # Systemwerte (Live, Verlauf, Backups)
     ├── app_settings.cpp  # Einstellungen
     ├── zubehoer.cpp/.h   # Anzeige auf Unit OLED / Unit Hex, Hintergrundabfragen dafür
+    ├── quelle.h          # Schnittstelle der Meldungsquellen
+    ├── meldestelle.cpp/.h # Meldestelle-Client (SSE, Nur-Lese-Token)
     ├── ntfy.cpp/.h       # ntfy-Stream-Client
     ├── config.cpp/.h     # SD-Konfiguration (Karte wird danach abgemeldet)
     ├── certs.h           # Root-Zertifikate

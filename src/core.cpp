@@ -4,6 +4,7 @@
 #include <WiFi.h>
 #include <time.h>
 
+#include "meldestelle.h"
 #include "text.h"
 
 namespace core {
@@ -11,7 +12,9 @@ namespace core {
 Config cfg;
 Settings settings;
 Preferences prefs;
-NtfyClient ntfy;
+static NtfyClient ntfyClient;
+static MeldestelleClient meldestelle;
+static Quelle* aktiv = &ntfyClient;
 std::deque<NtfyMessage> messages;
 bool ntfyVisible = false;
 bool keepAwake = false;
@@ -211,17 +214,23 @@ void begin() {
     WiFi.onEvent([](WiFiEvent_t, WiFiEventInfo_t info) { wifiDiscReason = info.wifi_sta_disconnected.reason; },
                  ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
     configTzTime(TZ_BERLIN, "pool.ntp.org", "time.cloudflare.com");
-    ntfy.begin(cfg.ntfyServer, cfg.ntfyTopics, onMessage);
+    if (cfg.nutztNtfy()) {
+        ntfyClient.begin(cfg.ntfyServer, cfg.ntfyTopics, onMessage);
+        aktiv = &ntfyClient;
+    } else {
+        meldestelle.begin(cfg.serverUrl, onMessage);
+        aktiv = &meldestelle;
+    }
     lastActivity = millis();
 }
 
 void tick() {
     wifiTick();
     // TLS braucht eine gueltige Uhrzeit fuer die Zertifikatspruefung
-    static NtfyClient::State lastState = NtfyClient::State::Idle;
-    ntfy.poll(online() && timeValid());
-    if (ntfy.state() != lastState) {
-        lastState = ntfy.state();
+    static Quelle::State lastState = Quelle::State::Idle;
+    aktiv->poll(online() && timeValid());
+    if (aktiv->state() != lastState) {
+        lastState = aktiv->state();
         dirty = true;
     }
 
@@ -278,6 +287,9 @@ String wifiDiagnosis() {
     for (auto& e : wifiEvents) s += (s.isEmpty() ? "" : "\n") + e;
     return s.isEmpty() ? String("noch keine Ereignisse") : s;
 }
+
+Quelle& quelle() { return *aktiv; }
+bool live() { return aktiv->state() == Quelle::State::Streaming; }
 
 int unread() {
     int n = 0;

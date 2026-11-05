@@ -69,6 +69,7 @@ bool loadConfig(Config& cfg, String& error) {
         else if (key == "status_url") cfg.statusUrl = val;
         else if (key == "status_slug") cfg.statusSlug = val;
         else if (key == "server_url") cfg.serverUrl = val;
+        else if (key == "meldungen") cfg.meldungen = val;
     }
     f.close();
     SD.end();  // Karte wird danach nicht mehr gebraucht
@@ -87,7 +88,16 @@ bool loadConfig(Config& cfg, String& error) {
             return false;
         }
     }
-    if (!validTopics(cfg.ntfyTopics)) {
+    cfg.meldungen.toLowerCase();
+    if (!cfg.meldungen.isEmpty() && cfg.meldungen != "ntfy" && cfg.meldungen != "meldestelle") {
+        error = "meldungen= ntfy oder meldestelle";
+        return false;
+    }
+    if (cfg.meldungen == "meldestelle" && cfg.serverUrl.isEmpty()) {
+        error = "meldungen=meldestelle braucht server_url";
+        return false;
+    }
+    if (cfg.nutztNtfy() && !validTopics(cfg.ntfyTopics)) {   // ntfy_topics nur noetig, wenn ntfy genutzt wird
         error = "ntfy_topics ungueltig";
         return false;
     }
